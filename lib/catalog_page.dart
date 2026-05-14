@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'product_model.dart';
 import 'add_product_page.dart';
+import 'submit_page.dart';
 
 class CatalogPage extends StatefulWidget {
   const CatalogPage({super.key});
@@ -66,119 +67,154 @@ class _CatalogPageState extends State<CatalogPage> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _products.isEmpty
-              ? const Center(child: Text("Belum ada produk. Tambah produk dulu yh!"))
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: _products.length,
-                  itemBuilder: (context, index) {
-                    final item = _products[index];
-                    return Card(
-                      elevation: 3,
-                      margin: const EdgeInsets.only(bottom: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(15),
-                          gradient: LinearGradient(
-                            colors: [Colors.white, const Color(0xFFFCF4F6)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 60,
-                                height: 60,
+          : Column(
+              children: [
+                Expanded(
+                  child: _products.isEmpty
+                      ? const Center(child: Text("Belum ada produk. Tambah produk dulu yh!"))
+                      : ListView.builder(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: _products.length,
+                          itemBuilder: (context, index) {
+                            final item = _products[index];
+                            return Card(
+                              elevation: 3,
+                              margin: const EdgeInsets.only(bottom: 16),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                              child: Container(
                                 decoration: BoxDecoration(
-                                  color: deepBlush.withValues(alpha: 0.2),
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(15),
+                                  gradient: const LinearGradient(
+                                    colors: [Colors.white, Color(0xFFFCF4F6)],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
                                 ),
-                                child: Icon(Icons.shopping_bag, color: cardinal, size: 30),
-                              ),
-                              const SizedBox(width: 16),
-                              
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      item.name,
-                                      style: TextStyle(
-                                        color: rusticRed,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12.0),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        width: 60,
+                                        height: 60,
+                                        decoration: BoxDecoration(
+                                          color: deepBlush.withValues(alpha: 0.2),
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        child: Icon(Icons.shopping_bag, color: cardinal, size: 30),
                                       ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      item.description,
-                                      style: TextStyle(color: tyrianPurple, fontSize: 13),
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      "Rp ${item.price.toStringAsFixed(0)}",
-                                      style: TextStyle(
-                                        color: cardinal,
-                                        fontWeight: FontWeight.w900,
-                                        fontSize: 15,
+                                      const SizedBox(width: 16),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              item.name,
+                                              style: TextStyle(color: rusticRed, fontWeight: FontWeight.bold, fontSize: 16),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              item.description,
+                                              style: TextStyle(color: tyrianPurple, fontSize: 13),
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Text(
+                                              "Rp ${item.price.toStringAsFixed(0)}",
+                                              style: TextStyle(color: cardinal, fontWeight: FontWeight.w900, fontSize: 15),
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                      IconButton(
+                                        icon: const Icon(Icons.delete_outline, color: Colors.red),
+                                        onPressed: () {
+                                          showDialog(
+                                            context: context,
+                                            builder: (context) => AlertDialog(
+                                              title: const Text('Yakin hapus produk ini?🥺'),
+                                              content: const Text('Data akan dihapus dari katalogmu lhoo.'),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () => Navigator.pop(context),
+                                                  child: const Text('Batal'),
+                                                ),
+                                                TextButton(
+                                                  onPressed: () {
+                                                    Navigator.pop(context);
+                                                    _deleteProduct(item.id);
+                                                  },
+                                                  child: const Text('Hapus', style: TextStyle(color: Colors.red)),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-
-                              IconButton(
-                                icon: const Icon(Icons.delete_outline, color: Colors.red),
-                                onPressed: () {
-                                  showDialog(
-                                    context: context,
-                                    builder: (context) => AlertDialog(
-                                      title: const Text('Yakin kamu mau hapus produk ini?🥺'),
-                                      content: const Text('Data ini akan dihapus dari katalogmu yawww.'),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () => Navigator.pop(context),
-                                          child: const Text('Batal'),
-                                        ),
-                                        TextButton(
-                                          onPressed: () {
-                                            Navigator.pop(context);
-                                            _deleteProduct(item.id);
-                                          },
-                                          child: const Text('Hapus', style: TextStyle(color: Colors.red)),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
+                            );
+                          },
                         ),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, -5),
                       ),
-                    );
-                  },
+                    ],
+                  ),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 55,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: cardinal,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        elevation: 5,
+                      ),
+                      icon: const Icon(Icons.send_rounded),
+                      label: const Text(
+                        'SUBMIT TUGAS',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                      ),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const SubmitPage()),
+                        );
+                      },
+                    ),
+                  ),
                 ),
-                floatingActionButton: FloatingActionButton(
-                  backgroundColor: const Color(0xFFAC1634),
-                  child: const Icon(Icons.add, color: Colors.white),
-                  onPressed: () async {
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => AddProductPage()),
-                    );
-                    
-                    if (result == true) {
-                      _fetchProducts(); 
-                    }
-                  },
-                ),
+              ],
+            ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 75.0),
+        child: FloatingActionButton(
+          backgroundColor: cardinal,
+          child: const Icon(Icons.add, color: Colors.white),
+          onPressed: () async {
+            final result = await Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => AddProductPage()),
+            );
+            if (result == true) {
+              _fetchProducts();
+            }
+          },
+        ),
+      ),
     );
   }
 
